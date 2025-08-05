@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบส่งงานต่างแผนก</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #87ceeb 0%, #b0d4f1 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* พื้นหลังฟองน้ำ */
+        .bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .bubble {
+            position: absolute;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            animation: float 20s infinite linear, shimmer 4s infinite ease-in-out;
+            opacity: 0.6;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+
+        @keyframes shimmer {
+            0% {
+                background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+                transform: scale(1);
+            }
+            50% {
+                background: linear-gradient(45deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
+                transform: scale(1.05);
+            }
+            100% {
+                background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+                transform: scale(1);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            animation: fadeIn 0.8s ease-in;
+            position: relative;
+            z-index: 10;
+        }
+
+        .container.wide {
+            max-width: 700px;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group select option {
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 107, 107, 0.1);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .success {
+            color: #51cf66;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            background: rgba(81, 207, 102, 0.1);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border-left: 3px solid #51cf66;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1.5rem;
+                margin: 10px;
+            }
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* เอฟเฟคพิเศษสำหรับ input focus */
+        .form-group input:focus + .input-glow,
+        .form-group select:focus + .input-glow,
+        .form-group textarea:focus + .input-glow {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- ฟองน้ำพื้นหลัง -->
+    <div class="bubbles" id="bubbles"></div>
+
+    <!-- หน้าล็อกอิน -->
+    <div id="loginPage" class="page active">
+        <div class="container">
+            <div class="header">
+                <h1>เข้าสู่ระบบ</h1>
+                <p>ระบบส่งงานต่างแผนก</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">ชื่อผู้ใช้:</label>
+                <input type="text" id="username" value="" placeholder="กรอกชื่อผู้ใช้">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">รหัสผ่าน:</label>
+                <input type="password" id="password" value="" placeholder="กรอกรหัสผ่าน">
+            </div>
+            
+            <button onclick="login()" class="btn">เข้าสู่ระบบ</button>
+            <div id="loginError" class="error"></div>
+        </div>
+    </div>
+
+    <!-- หน้าแบบฟอร์มส่งงาน -->
+    <div id="formPage" class="page">
+        <div class="container wide">
+            <div class="header">
+                <h1>แบบฟอร์ม Onsite Media</h1>
+                <p>กรุณากรอกข้อมูลให้ครบถ้วน</p>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="senderName">ชื่อผู้ส่ง:</label>
+                    <input type="text" id="senderName" required placeholder="กรอกชื่อผู้ส่ง">
+                </div>
+                
+                <div class="form-group">
+                    <label for="senderDept">แผนกผู้ส่ง:</label>
+                    <select id="senderDept" required>
+                        <option value="">เลือกแผนก</option>
+                        <option value="การตลาด">การตลาด</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="receiverDept">แผนกผู้รับ:</label>
+                    <select id="receiverDept" required>
+                        <option value="">เลือกแผนก</option>
+                        <option value="Onsite Media">Onsite Media</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority">ความสำคัญ:</label>
+                    <select id="priority" required>
+                        <option value="">เลือกความสำคัญ</option>
+                        <option value="ปกติ">ปกติ</option>
+                        <option value="ด่วน">ด่วน</option>
+                        <option value="ด่วนมาก">ด่วนมาก</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="subject">ชื่อร้าน:</label>
+                <input type="text" id="subject" required placeholder="กรอกชื่อร้าน">
+            </div>
+
+            <div class="form-group">
+                <label for="location">ชั้น,พื้นที่:</label>
+                <input type="text" id="location" required placeholder="กรอกชั้นและพื้นที่">
+            </div>
+
+            <div class="form-group">
+                <label for="description">ต้องการโปรโมท สินค้าโปรโมชั่นคอนเทนต์แบบใด:</label>
+                <textarea id="description" placeholder="อธิบายรายละเอียดงานที่ต้องการส่ง..." required></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dueDate">กำหนดส่ง:</label>
+                    <input type="date" id="dueDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactTime">เวลาติดต่อ:</label>
+                    <input type="time" id="contactTime" required placeholder="เลือกเวลาติดต่อ">
+                </div>
+            </div>
+
+            <button onclick="submitForm()" class="btn">ส่งงาน</button>
+            <div id="formMessage" class="success"></div>
+        </div>
+    </div>
+
+    <script>
+        // สร้างฟองน้ำ
+        function createBubbles() {
+            const bubblesContainer = document.getElementById('bubbles');
+            
+            function createBubble() {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                
+                // ขนาดฟองสุ่ม
+                const size = Math.random() * 80 + 20;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                
+                // ตำแหน่ง X สุ่ม
+                bubble.style.left = Math.random() * window.innerWidth + 'px';
+                
+                // ความเร็วสุ่ม
+                const duration = Math.random() * 10 + 10;
+                bubble.style.animationDuration = duration + 's';
+                
+                // หน่วงเวลาสุ่ม
+                bubble.style.animationDelay = Math.random() * 5 + 's';
+                
+                bubblesContainer.appendChild(bubble);
+                
+                // ลบฟองเมื่อแอนิเมชันจบ
+                setTimeout(() => {
+                    if (bubble.parentNode) {
+                        bubble.parentNode.removeChild(bubble);
+                    }
+                }, (duration + 5) * 1000);
+            }
+            
+            // สร้างฟองใหม่ทุก 1-3 วินาที
+            function scheduleBubble() {
+                createBubble();
+                setTimeout(scheduleBubble, Math.random() * 2000 + 1000);
+            }
+            
+            // เริ่มต้นด้วยฟองหลายๆ อัน
+            for (let i = 0; i < 5; i++) {
+                setTimeout(createBubble, i * 1000);
+            }
+            
+            scheduleBubble();
+        }
+        
+        // เริ่มสร้างฟองเมื่อโหลดหน้าเว็บ
+        window.addEventListener('load', createBubbles);
+
+        // ตั้งค่าวันที่ขั้นต่ำเป็นวันปัจจุบัน
+        document.getElementById('dueDate').min = new Date().toISOString().split('T')[0];
+        
+        // ฟังก์ชันล็อกอิน
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('loginError');
+            
+            console.log('กำลังตรวจสอบการล็อกอิน:', username, password);
+            
+            if (username === 'admin' && password === '1234') {
+                console.log('ล็อกอินสำเร็จ');
+                // ซ่อนหน้าล็อกอิน
+                document.getElementById('loginPage').classList.remove('active');
+                // แสดงหน้าฟอร์ม
+                document.getElementById('formPage').classList.add('active');
+                errorDiv.textContent = '';
+            } else {
+                console.log('ล็อกอินไม่สำเร็จ');
+                errorDiv.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+            }
+        }
+
+        // ฟังก์ชันส่งแบบฟอร์ม
+        function submitForm() {
+            // ตรวจสอบว่ากรอกข้อมูลครบหรือไม่
+            const requiredFields = ['senderName', 'senderDept', 'receiverDept', 'priority', 'subject', 'location', 'description', 'dueDate', 'contactTime'];
+            let isValid = true;
+            
+            for (let field of requiredFields) {
+                if (!document.getElementById(field).value.trim()) {
+                    isValid = false;
+                    break;
+                }
+            }
+            
+            if (!isValid) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            // รวบรวมข้อมูลจากฟอร์ม
+            const formData = {
+                timestamp: new Date().toLocaleString('th-TH'),
+                senderName: document.getElementById('senderName').value,
+                senderDept: document.getElementById('senderDept').value,
+                receiverDept: document.getElementById('receiverDept').value,
+                priority: document.getElementById('priority').value,
+                subject: document.getElementById('subject').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value,
+                dueDate: document.getElementById('dueDate').value,
+                contactTime: document.getElementById('contactTime').value
+            };
+
+            // ส่งข้อมูลไป Google Sheets
+            sendToGoogleSheets(formData);
+        }
+
+        // ฟังก์ชันส่งข้อมูลไป Google Sheets
+        function sendToGoogleSheets(data) {
+            console.log('ข้อมูลที่จะส่ง:', data);
+            console.log('เวลาติดต่อ:', data.contactTime);
+            
+            // **ใส่ URL ของ Google Apps Script ตรงนี้**
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqwjcHtnaovpXbtPESQOZKiW0B9FCNOLe7yg7wyhper1m8QpDuGWYPV1oGQ58QTPgZ/exec';
+            
+            // ส่งข้อมูลไป Google Sheets
+            document.getElementById('formMessage').textContent = 'กำลังส่งข้อมูล...';
+            
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(() => {
+                document.getElementById('formMessage').textContent = 'ส่งข้อมูลเรียบร้อยแล้ว!';
+                document.getElementById('formMessage').className = 'success';
+                clearForm();
+                
+                setTimeout(() => {
+                    document.getElementById('formMessage').textContent = '';
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('formMessage').textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+                document.getElementById('formMessage').className = 'error';
+            });
+        }
+        
+        // ฟังก์ชันล้างฟอร์ม
+        function clearForm() {
+            document.getElementById('senderName').value = '';
+            document.getElementById('senderDept').value = '';
+            document.getElementById('receiverDept').value = '';
+            document.getElementById('priority').value = '';
+            document.getElementById('subject').value = '';
+            document.getElementById('location').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('dueDate').value = '';
+            document.getElementById('contactTime').value = '';
+        }
+
+        // เพิ่ม Enter key support สำหรับการล็อกอิน
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
