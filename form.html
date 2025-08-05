@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Form</title>
+</head>
+<body>
+  <h2>กรอกข้อมูล</h2>
+  <form id="dataForm">
+    <input type="text" id="name" name="name" placeholder="ชื่อ" required><br><br>
+    <input type="text" id="detail" name="detail" placeholder="รายละเอียด" required><br><br>
+    <button type="submit">ส่งข้อมูล</button>
+  </form>
+
+  <script>
+    // ✅ ป้องกันคนที่ยังไม่ล็อกอิน
+    if (localStorage.getItem("loggedIn") !== "true") {
+      window.location.href = "login.html";
+    }
+
+    // ✅ URL ของ Google Apps Script ที่คุณให้มา
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyq0cV6vnk5-k-PZ87WfTrf5JteYzDUHUpLtpH1U3AkuQJnmYKVpsgROiAaQF-PtwtCkQ/exec';
+
+    document.getElementById("dataForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const formData = new FormData(document.getElementById("dataForm"));
+      
+      fetch(scriptURL, { method: 'POST', body: formData })
+        .then(response => {
+          alert("✅ ส่งข้อมูลเรียบร้อยแล้ว");
+          document.getElementById("dataForm").reset();
+        })
+        .catch(error => {
+          alert("❌ เกิดข้อผิดพลาดในการส่งข้อมูล: " + error.message);
+        });
+    });
+  </script>
+</body>
+</html>
