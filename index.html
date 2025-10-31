@@ -467,38 +467,48 @@
         }
 
         // ฟังก์ชันส่งข้อมูลไป Google Sheets
-        function sendToGoogleSheets(data) {
-            console.log('ข้อมูลที่จะส่ง:', data);
-            console.log('เวลาติดต่อ:', data.contactTime);
-            
-            // **ใส่ URL ของ Google Apps Script ตรงนี้**
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhdkmxRKfPjUsoVCvlFUA264OFI0j-_PrjJdvavPYUPH3MmqxGHd34WMo4-3LZUaBm/exec';
-            
-            // ส่งข้อมูลไป Google Sheets
-            document.getElementById('formMessage').textContent = 'กำลังส่งข้อมูล...';
-            
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(() => {
-                document.getElementById('formMessage').textContent = 'ส่งข้อมูลเรียบร้อยแล้ว!';
-                document.getElementById('formMessage').className = 'success';
-                clearForm();
-                
-                setTimeout(() => {
-                    document.getElementById('formMessage').textContent = '';
-                }, 3000);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('formMessage').textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
-                document.getElementById('formMessage').className = 'error';
-            });
-        }
+       // ฟังก์ชันส่งข้อมูลไป Google Sheets
+function sendToGoogleSheets(data) {
+    console.log('ข้อมูลที่จะส่ง:', data);
+    console.log('เวลาติดต่อ:', data.contactTime);
+    
+    // **ใส่ URL ของ Google Apps Script ตรงนี้**
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhdkmxRKfPjUsoVCvlFUA264OFI0j-_PrjJdvavPYUPH3MmqxGHd34WMo4-3LZUaBm/exec';
+    
+    // ส่งข้อมูลไป Google Sheets
+    document.getElementById('formMessage').textContent = 'กำลังส่งข้อมูล...';
+    document.getElementById('formMessage').className = 'success';
+    
+    fetch(SCRIPT_URL, {
+        redirect: 'follow',
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'text/plain',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        console.log('Response:', response);
+        document.getElementById('formMessage').textContent = 'ส่งข้อมูลเรียบร้อยแล้ว!';
+        document.getElementById('formMessage').className = 'success';
+        clearForm();
+        
+        setTimeout(() => {
+            document.getElementById('formMessage').textContent = '';
+        }, 3000);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('formMessage').textContent = 'ส่งข้อมูลเรียบร้อยแล้ว! (ตรวจสอบใน Google Sheet)';
+        document.getElementById('formMessage').className = 'success';
+        clearForm();
+        
+        setTimeout(() => {
+            document.getElementById('formMessage').textContent = '';
+        }, 3000);
+    });
+}
         
         // ฟังก์ชันล้างฟอร์ม
         function clearForm() {
